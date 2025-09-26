@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Transaction Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .account-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .balance {
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .transaction-steps {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .step.pending {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .step.processing {
+            background: #fff3cd;
+            color: #856404;
+            animation: pulse 1.5s infinite;
+        }
+
+        .step.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .step.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .step.pending .step-icon {
+            background: #6c757d;
+            color: white;
+        }
+
+        .step.processing .step-icon {
+            background: #ffc107;
+            color: white;
+        }
+
+        .step.completed .step-icon {
+            background: #28a745;
+            color: white;
+        }
+
+        .step.failed .step-icon {
+            background: #dc3545;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏦 Bank Transaction Simulator</h1>
+        
+        <div class="account-info">
+            <div>Account Balance</div>
+            <div class="balance" id="balance">$1000.00</div>
+        </div>
+
+        <div class="input-group">
+            <label for="amount">Transfer Amount ($)</label>
+            <input type="number" id="amount" min="1" max="1000" step="0.01" placeholder="Enter amount to transfer">
+        </div>
+
+        <button class="btn" id="transferBtn" onclick="startTransfer()">Start Transfer</button>
+
+        <div id="status" class="hidden"></div>
+
+        <div class="transaction-steps" id="steps">
+            <h3 style="margin-bottom: 15px; color: #333;">Transaction Steps</h3>
+            <div class="step pending" id="step1">
+                <div class="step-icon">1</div>
+                <div>Check Balance</div>
+            </div>
+            <div class="step pending" id="step2">
+                <div class="step-icon">2</div>
+                <div>Deduct Amount</div>
+            </div>
+            <div class="step pending" id="step3">
+                <div class="step-icon">3</div>
+                <div>Confirm Transaction</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBalance = 1000;
+
+        // Simulate checking balance with possible failure
+        function checkBalance(amount) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 20% chance of failure
+                    if (Math.random() < 0.2) {
+                        reject(new Error("Balance check failed - Service temporarily unavailable"));
+                        return;
+                    }
+                    
+                    if (currentBalance < amount) {
+                        reject(new Error("Insufficient funds"));
+                        return;
+                    }
+                    
+                    resolve(`Balance verified: $${currentBalance.toFixed(2)}`);
+                }, 1500);
+            });
+        }
+
+        // Simulate deducting amount with possible failure
+        function deductAmount(amount) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 15% chance of failure
+                    if (Math.random() < 0.15) {
+                        reject(new Error("Deduction failed - Database error"));
+                        return;
+                    }
+                    
+                    currentBalance -= amount;
+                    resolve(`Amount deducted: $${amount.toFixed(2)}`);
+                }, 1500);
+            });
+        }
+
+        // Simulate confirming transaction with possible failure
+        function confirmTransaction() {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // 10% chance of failure
+                    if (Math.random() < 0.1) {
+                        reject(new Error("Transaction confirmation failed - Network timeout"));
+                        return;
+                    }
+                    
+                    resolve("Transaction complete");
+                }, 1500);
+            });
+        }
+
+        function updateStepStatus(stepNumber, status) {
+            const step = document.getElementById(`step${stepNumber}`);
+            step.className = `step ${status}`;
+            
+            const icon = step.querySelector('.step-icon');
+            if (status === 'completed') {
+                icon.textContent = '✓';
+            } else if (status === 'failed') {
+                icon.textContent = '✗';
+            } else if (status === 'processing') {
+                icon.textContent = stepNumber;
+            }
+        }
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = `$${currentBalance.toFixed(2)}`;
+        }
+
+        function resetSteps() {
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.className = 'step pending';
+                step.querySelector('.step-icon').textContent = i;
+            }
+        }
+
+        async function startTransfer() {
+            const amountInput = document.getElementById('amount');
+            const transferBtn = document.getElementById('transferBtn');
+            const amount = parseFloat(amountInput.value);
+
+            if (!amount || amount <= 0) {
+                updateStatus('Please enter a valid amount', 'error');
+                return;
+            }
+
+            if (amount > 1000) {
+                updateStatus('Amount cannot exceed $1000', 'error');
+                return;
+            }
+
+            transferBtn.disabled = true;
+            resetSteps();
+            document.getElementById('status').classList.add('hidden');
+
+            try {
+                // Step 1: Check Balance
+                updateStepStatus(1, 'processing');
+                updateStatus('Checking balance...', 'processing');
+                
+                await checkBalance(amount);
+                updateStepStatus(1, 'completed');
+
+                // Step 2: Deduct Amount
+                updateStepStatus(2, 'processing');
+                updateStatus('Deducting amount...', 'processing');
+                
+                await deductAmount(amount);
+                updateStepStatus(2, 'completed');
+                updateBalance();
+
+                // Step 3: Confirm Transaction
+                updateStepStatus(3, 'processing');
+                updateStatus('Confirming transaction...', 'processing');
+                
+                await confirmTransaction();
+                updateStepStatus(3, 'completed');
+                
+                updateStatus('Transaction completed successfully!', 'success');
+
+            } catch (error) {
+                // Determine which step failed
+                const step1 = document.getElementById('step1');
+                const step2 = document.getElementById('step2');
+                const step3 = document.getElementById('step3');
+
+                if (step1.classList.contains('processing')) {
+                    updateStepStatus(1, 'failed');
+                } else if (step2.classList.contains('processing')) {
+                    updateStepStatus(2, 'failed');
+                    // Rollback balance if deduction was attempted
+                    currentBalance += amount;
+                    updateBalance();
+                } else if (step3.classList.contains('processing')) {
+                    updateStepStatus(3, 'failed');
+                    // Rollback balance if confirmation failed
+                    currentBalance += amount;
+                    updateBalance();
+                }
+
+                updateStatus(`Transaction failed: ${error.message}`, 'error');
+            } finally {
+                transferBtn.disabled = false;
+            }
+        }
+
+        // Allow Enter key to trigger transfer
+        document.getElementById('amount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startTransfer();
+            }
+        });
+    </script>
+</body>
+</html>
