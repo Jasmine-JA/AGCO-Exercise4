@@ -246,11 +246,9 @@
     <script>
         let currentBalance = 1000;
 
-        // Simulate checking balance with possible failure
         function checkBalance(amount) {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    // 20% chance of failure
                     if (Math.random() < 0.2) {
                         reject(new Error("Balance check failed - Service temporarily unavailable"));
                         return;
@@ -266,11 +264,9 @@
             });
         }
 
-        // Simulate deducting amount with possible failure
         function deductAmount(amount) {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    // 15% chance of failure
                     if (Math.random() < 0.15) {
                         reject(new Error("Deduction failed - Database error"));
                         return;
@@ -282,11 +278,9 @@
             });
         }
 
-        // Simulate confirming transaction with possible failure
         function confirmTransaction() {
             return new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    // 10% chance of failure
                     if (Math.random() < 0.1) {
                         reject(new Error("Transaction confirmation failed - Network timeout"));
                         return;
@@ -350,14 +344,12 @@
             document.getElementById('status').classList.add('hidden');
 
             try {
-                // Step 1: Check Balance
                 updateStepStatus(1, 'processing');
                 updateStatus('Checking balance...', 'processing');
                 
                 await checkBalance(amount);
                 updateStepStatus(1, 'completed');
 
-                // Step 2: Deduct Amount
                 updateStepStatus(2, 'processing');
                 updateStatus('Deducting amount...', 'processing');
                 
@@ -365,7 +357,6 @@
                 updateStepStatus(2, 'completed');
                 updateBalance();
 
-                // Step 3: Confirm Transaction
                 updateStepStatus(3, 'processing');
                 updateStatus('Confirming transaction...', 'processing');
                 
@@ -375,7 +366,6 @@
                 updateStatus('Transaction completed successfully!', 'success');
 
             } catch (error) {
-                // Determine which step failed
                 const step1 = document.getElementById('step1');
                 const step2 = document.getElementById('step2');
                 const step3 = document.getElementById('step3');
@@ -384,12 +374,10 @@
                     updateStepStatus(1, 'failed');
                 } else if (step2.classList.contains('processing')) {
                     updateStepStatus(2, 'failed');
-                    // Rollback balance if deduction was attempted
                     currentBalance += amount;
                     updateBalance();
                 } else if (step3.classList.contains('processing')) {
                     updateStepStatus(3, 'failed');
-                    // Rollback balance if confirmation failed
                     currentBalance += amount;
                     updateBalance();
                 }
@@ -400,7 +388,6 @@
             }
         }
 
-        // Allow Enter key to trigger transfer
         document.getElementById('amount').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 startTransfer();
